@@ -66,92 +66,60 @@ def getBlockBorders(rowIndex, columnIndex):
 
     return borders
 
-def checkBlock (number, board, rowIndex, columnIndex):
-    borders = getBlockBorders(rowIndex, columnIndex)
+def checkBlock (number, board, cell):
+    borders = getBlockBorders(cell[0], cell[1])
     for row in range(borders['startRow'], borders['endRow'] + 1):
         for column in range(borders['startColumn'], borders['endColumn'] + 1):
-           if row != rowIndex  and column != columnIndex:
+           if row != cell[0]  and column != cell[1]:
                if number == board[row][column]:
                    return False
     return True
 
-def checkRow (number, rowIndex, index):
-    for cellIndex, cell in enumerate(board[rowIndex]):
-        if cellIndex != index:
-            if cell == number:
+def checkRow (number, cell):
+    for cellIndex, value in enumerate(board[cell[0]]):
+        if cellIndex != cell[1]:
+            if value == number:
                 return False
     return True
 
-def checkColumn(number, board, rowIndex, columnIndex):
+def checkColumn(number, board, cell):
     for index, row in enumerate(board):
-        if index != rowIndex:
-            if row[columnIndex] == number:
+        if index != cell[0]:
+            if row[cell[1]] == number:
                 return False
     return True
 
-from random import randrange
+def validInsertion (board, number, cell):
+    if checkColumn(number, board, cell) and checkRow(number, cell) and checkBlock(number, board, cell):
+        return True
+    return False
 
-def getProposition(board, rowIndex, columnIndex):
-    triedNumbers = []
-    while True:
-        if len(triedNumbers) == 9:
-            return 0
-        number = randrange(1, 10)
-        print(number)
-        if checkRow(number, rowIndex, columnIndex) and checkColumn(number, board, rowIndex, columnIndex) and checkBlock(number, board, rowIndex, columnIndex):
-            return number
-        else:
-            if number not in triedNumbers:
-                triedNumbers.append(number)
+def findEmptyCell (board):
+    for rowCount, row in enumerate(board):
+        for columnCount, cell in enumerate(row):
+            if cell == 0:
+                return rowCount, columnCount
+    return None, None
 
-def backTrack(board, originalBoard, rowIndex, borders):
-    for index in range(borders['startColumn'], borders['endColumn'] + 1):
-        board[rowIndex][index] = originalBoard[rowIndex][index]
-    return board 
+def solveBoard (board):
+    row, column = findEmptyCell (board)
+    if row is None:
+        return True
+    else:
+        
+        for number in range(1, 10):
+            if validInsertion(board, number, (row, column)):
+                board[row][column] = number
 
-import copy
-
-def solveBoard(board):
-    count = 0
-    rowIndex = -1
-    originalBoard = copy.deepcopy(board)
-    while rowIndex < len(board):
-        rowIndex += 1
-        columnIndex = 0
-        backTrackTimes = 0
-        rowFailurePos = -1
-        colFailurePos = -1
-        while columnIndex < len(board[rowIndex]):   
-            if board[rowIndex][columnIndex] == 0:
-                count += 1  
-                x = getProposition(board, rowIndex, columnIndex)
-
-                if x == 0:
-                    ## In case it fails again after backtracking in another cell placed before the first cell failure so we should ignore the first
-                    if colFailurePos != columnIndex or rowFailurePos != rowIndex:
-                        backTrackTimes = 0
-                    backTrackTimes += 1
-                    rowFailurePos = rowIndex
-                    colFailurePos = columnIndex
-                    startColumn = columnIndex
-                    for i in range(backTrackTimes):
-                        borders = getBlockBorders(rowIndex, startColumn)
-                        startColumn = borders['startColumn'] - 1
-                        board = backTrack(board, originalBoard, rowIndex, borders)
-                    columnIndex = borders['startColumn']
-                else:
-                    board[rowIndex][columnIndex] = x
-                    if rowIndex == rowFailurePos and columnIndex == colFailurePos:
-                        backTrackTimes = 0
-                        rowFailurePos = -1
-                        colFailurePos = -1
-                    columnIndex += 1
-                print("Tentative " + str(count))
                 printBoard(board)
-            else:
-                columnIndex += 1
-            if count == 30000:
-                name = "stop"
+
+                if solveBoard(board):
+                    return True
+                
+                board[row][column] = 0
+        return False
+
+
 printBoard(board)
 
 solveBoard(board)
