@@ -150,8 +150,7 @@ def solveBoard(board):
                 printBoard(board)
             else:
                 columnIndex += 1
-            if count == 30000:
-                name = "stop"
+           
 printBoard(board)
 
 solveBoard(board)
